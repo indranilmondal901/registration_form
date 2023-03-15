@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF_8">
+    <meta http_equiv="X_UA_Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device_width, initial_scale=1.0">
+    <link rel="stylesheet" href="css/registerStyle.css">
+    <title>Registration Form</title>
+</head>
+
+<body>
+    {{>navbar}}
+    <form action="/register" method="POST">
+        <fieldset>
+            <legend>Registration Form</legend>
+            <label for="first_name">First Name:</label>
+            <input type="text" id="first_name" name="first_name" required>
+            <label for="last_name">Last Name:</label>
+            <input type="text" id="last_name" name="last_name" required>
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+            <label>Gender:</label>
+            <label for="male"><input type="radio" id="male" name="gender" value="male">Male</label>
+            <label for="female"><input type="radio" id="female" name="gender" value="female">Female</label>
+            <label for="phone">Phone Number:</label>
+            <input type="tel" id="phone" name="phone" required>
+            <label for="age">Age:</label>
+            <input type="text" id="age" name="age" required>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+            <label for="confirm_password">Confirm Password:</label>
+            <input type="password" id="confirm_password" name="confirm_password" required>
+            <button type="submit">Register</button>
+        </fieldset>
+    </form>
+</body>
+
+</html>
