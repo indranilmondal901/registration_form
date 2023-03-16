@@ -5,6 +5,8 @@ const hbs = require("hbs");
 const path = require("path");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const cookieParser = require("cookie-parser");
+const auth = require("./middlewire/auth");
 const port = process.env.PORT || 3000;
 
 //connection
@@ -25,8 +27,9 @@ app.set("views", new_views_Path);
 hbs.registerPartials(partial_path)
 
 //middlewire
-app.use(express.json()) //==> works for postman
-app.use(express.urlencoded({ extended: false }))
+app.use(express.json()); //==> works for postman
+app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
 
 /*::::::::::::::::::::::[ROUTE]:::::::::::::::::::::::: */
 
@@ -45,17 +48,27 @@ app.post("/register", async (req, res) => {
                 password: req.body.password,
                 confirmPassword: req.body.confirm_password
             })
-            console.log(userData);
+            // console.log(userData);
             //password hasing ==> concept of middlewire
             //jwt ==> middlewire required 
             const token = await userData.generateAuthToken();
             console.log("token from app page==>" + token);
+
+
+            //The res.cooke() function is used to set the cooke name to value;
+            //The value parameter may be a string or obj converted to JSON.
+            res.cookie("regJwt", token, {
+                expires: new Date(Date.now() + 120000),
+                // httpOnly: true 
+            });
+
+
             userData = await userData.save();
             // res.status(201).send({
             //     status: "sucessfull",
             //     data: userData
             // })
-            res.status(201).render("index")
+            res.status(201).render("index");
         } else {
             res.send("Password is not matching")
         }
@@ -76,11 +89,22 @@ app.post("/login", async (req, res) => {
 
         const checkMatch = await bcrypt.compare(password, userData.password);
         // console.log(password, checkMatch);
+
+
         if (checkMatch) {
             const token = await userData.generateAuthToken();
             console.log("token after login==>" + token)
+
+            res.cookie("loginJwt", token, {
+                expires: new Date(Date.now() + 120000),
+                httpOnly: true,
+                // secure: true
+            });
+            // console.log(`login jwt is --> ${req.cookies.loginJwt}`)
+
             res.status(201).render("index");
             console.log("login sucessfully");
+
         } else {
             res.status(400).send("<h1>invalid login credential</h1>")
         }
@@ -101,6 +125,35 @@ app.get("/register", (req, res) => {
 
 app.get("/login", (req, res) => {
     res.render("login")
+})
+
+app.get("/logout", auth, async (req, res) => {
+    try {
+        console.log(`this user is logged out ==> ${req.user}`)
+
+        //logout from single device
+        // req.user.tokens = req.user.tokens.filter((val,index,arr)=>{
+        //     return val.token != req.token;
+        // })
+
+        //logout from all devices
+        req.user.tokens = [];
+
+        res.clearCookie("loginJwt")
+        await req.user.save();
+
+        // res.send("logout done")
+        console.log("User sucessfully logged out");
+        res.render("login");
+    } catch (err) {
+        res.status(500).send(err);
+    }
+})
+
+//if auth {geniune} user then only render secret page
+app.get("/secret", auth, (req, res) => {
+    console.log(`login jwt is --> ${req.cookies.loginJwt}`);
+    res.render("secret")
 })
 
 // PASSWORD
